@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jogo da Cobrinha</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #282c34;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+    canvas {
+      border: 1px solid white;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
+  <script>
+    // Seleciona o canvas e o contexto
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Configuração do jogo
+    const boxSize = 20; // Tamanho de cada "bloco" da cobra
+    const rows = canvas.height / boxSize;
+    const cols = canvas.width / boxSize;
+    let snake = [{ x: 10, y: 10 }]; // Posição inicial da cobra
+    let direction = "RIGHT";
+    let food = { x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows) };
+    let score = 0;
+
+    // Detecta teclas de direção
+    document.addEventListener("keydown", changeDirection);
+
+    function changeDirection(event) {
+      const key = event.key;
+      if (key === "ArrowUp" && direction !== "DOWN") direction = "UP";
+      if (key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+      if (key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
+      if (key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
+    }
+
+    // Atualiza o jogo
+    function updateGame() {
+      const head = { ...snake[0] }; // Cópia da cabeça da cobra
+
+      // Atualiza a posição da cabeça com base na direção
+      if (direction === "UP") head.y -= 1;
+      if (direction === "DOWN") head.y += 1;
+      if (direction === "LEFT") head.x -= 1;
+      if (direction === "RIGHT") head.x += 1;
+
+      // Verifica colisões (parede ou corpo)
+      if (
+        head.x < 0 ||
+        head.x >= cols ||
+        head.y < 0 ||
+        head.y >= rows ||
+        snake.some(segment => segment.x === head.x && segment.y === head.y)
+      ) {
+        alert(`Fim de jogo! Sua pontuação: ${score}`);
+        snake = [{ x: 10, y: 10 }];
+        direction = "RIGHT";
+        score = 0;
+        food = { x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows) };
+        return;
+      }
+
+      // Adiciona a nova cabeça
+      snake.unshift(head);
+
+      // Verifica se a cobra comeu a comida
+      if (head.x === food.x && head.y === food.y) {
+        score++;
+        food = { x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows) };
+      } else {
+        snake.pop(); // Remove a cauda, se não cresceu
+      }
+    }
+
+    // Desenha o jogo
+    function drawGame() {
+      // Limpa a tela
+      ctx.fillStyle = "#282c34";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Desenha a comida
+      ctx.fillStyle = "red";
+      ctx.fillRect(food.x * boxSize, food.y * boxSize, boxSize, boxSize);
+
+      // Desenha a cobra
+      ctx.fillStyle = "green";
+      snake.forEach(segment => {
+        ctx.fillRect(segment.x * boxSize, segment.y * boxSize, boxSize, boxSize);
+      });
+
+      // Desenha a pontuação
+      ctx.fillStyle = "white";
+      ctx.font = "20px Arial";
+      ctx.fillText(`Pontuação: ${score}`, 10, 20);
+    }
+
+    // Loop do jogo
+    function gameLoop() {
+      updateGame();
+      drawGame();
+    }
+
+    // Inicia o jogo
+    setInterval(gameLoop, 100); // Atualiza a cada 100ms (10 FPS)
+  </script>
+</body>
+</html>
